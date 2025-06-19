@@ -905,9 +905,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 
     fetch('https://api.silq.workers.dev/account', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: username, pass: password })
     })
     .then(res => {
@@ -918,27 +916,12 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         console.log('Login response:', sessionKey);
         document.getElementById('loginSuccess').style.display = 'block';
 
-        // Create form dynamically for POST redirect
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'https://silq.pages.dev/dashboard';
+        // Redirect to dashboard with query params
+        const dashboardUrl = `https://api.silq.workers.dev/dashboard?u=${encodeURIComponent(username)}&s=${encodeURIComponent(sessionKey)}`;
 
-        const userInput = document.createElement('input');
-        userInput.type = 'hidden';
-        userInput.name = 'user';
-        userInput.value = username;
-        form.appendChild(userInput);
-
-        const sessionInput = document.createElement('input');
-        sessionInput.type = 'hidden';
-        sessionInput.name = 'session';
-        sessionInput.value = sessionKey;
-        form.appendChild(sessionInput);
-
-        document.body.appendChild(form);
-
+        // Small delay so user can see success msg
         setTimeout(() => {
-            form.submit();
+            window.location.href = dashboardUrl;
         }, 1500);
     })
     .catch(err => {
