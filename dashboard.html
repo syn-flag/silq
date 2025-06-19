@@ -200,66 +200,66 @@
     </div>
   </div>
 
-  <script>
-    const params = new URLSearchParams(window.name);
-    const user = params.get('user');
-    const session = params.get('session');
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const user = params.get('user');
+  const session = params.get('session');
 
-    if (!user || !session) {
-      document.body.innerHTML = '<h2>Unauthorized access</h2>';
-      throw new Error('Access denied');
+  if (!user || !session) {
+    document.body.innerHTML = '<h2>Unauthorized access</h2>';
+    throw new Error('Access denied');
+  }
+
+  async function loadSessions() {
+    const res = await fetch('https://api.silq.workers.dev/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user, session })
+    });
+
+    if (!res.ok) {
+      document.body.innerHTML = '<h2>Invalid session</h2>';
+      return;
     }
 
-    async function loadSessions() {
-      const res = await fetch('https://api.silq.workers.dev/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user, session })
-      });
+    const { stats, sessions } = await res.json();
 
-      if (!res.ok) {
-        document.body.innerHTML = '<h2>Invalid session</h2>';
-        return;
-      }
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-title">Total Requests</div>
+        <div class="stat-value">${stats.requests}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Active Sessions</div>
+        <div class="stat-value">${sessions.length}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Blocked Requests</div>
+        <div class="stat-value">${stats.blocked}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Uptime</div>
+        <div class="stat-value">${stats.uptime}</div>
+      </div>`;
 
-      const { stats, sessions } = await res.json();
-
-      document.getElementById('stats').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-title">Total Requests</div>
-          <div class="stat-value">${stats.requests}</div>
+    const list = document.getElementById('sessionList');
+    sessions.forEach(sess => {
+      const el = document.createElement('div');
+      el.className = 'session-item';
+      el.innerHTML = `
+        <div class="session-info">
+          <span class="session-id">${sess.id}</span>
+          <span class="session-meta">Started ${sess.started} • ${sess.ip}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-title">Active Sessions</div>
-          <div class="stat-value">${sessions.length}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-title">Blocked Requests</div>
-          <div class="stat-value">${stats.blocked}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-title">Uptime</div>
-          <div class="stat-value">${stats.uptime}</div>
+        <div class="session-actions">
+          <a href="#">Details</a>
+          <a href="#">Terminate</a>
         </div>`;
+      list.appendChild(el);
+    });
+  }
 
-      const list = document.getElementById('sessionList');
-      sessions.forEach(sess => {
-        const el = document.createElement('div');
-        el.className = 'session-item';
-        el.innerHTML = `
-          <div class="session-info">
-            <span class="session-id">${sess.id}</span>
-            <span class="session-meta">Started ${sess.started} • ${sess.ip}</span>
-          </div>
-          <div class="session-actions">
-            <a href="#">Details</a>
-            <a href="#">Terminate</a>
-          </div>`;
-        list.appendChild(el);
-      });
-    }
-
-    loadSessions();
-  </script>
+  loadSessions();
+</script>
 </body>
 </html>
