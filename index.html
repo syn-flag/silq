@@ -830,8 +830,6 @@
         </section>
     </main>
 <script>
-    const API_URL = 'https://api.silq.workers.dev'; // change to yours
-
     function setFavicon() {
         const favicon = document.getElementById('favicon');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -881,7 +879,6 @@
     function togglePassword(inputId) {
         const input = document.getElementById(inputId);
         const button = input.nextElementSibling;
-
         if (input.type === 'password') {
             input.type = 'text';
             button.textContent = 'Hide';
@@ -891,52 +888,43 @@
         }
     }
 
-    // Close modal when clicking outside of it
     document.getElementById('loginModal').addEventListener('click', function(e) {
         if (e.target === this) closeLoginModal();
     });
 
-    // Close modal with Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeLoginModal();
     });
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
 
         hideMessages();
 
-        const form = new FormData();
-        form.append('user', username);
-        form.append('pass', password);
-
-        try {
-            const res = await fetch(`${API_URL}/account`, {
-                method: 'POST',
-                body: form,
-                credentials: 'omit',
-                headers: {
-                    'Origin': 'https://silq.pages.dev'
-                }
-            });
-
-            const text = await res.text();
-            console.log("Login response:", text);
-
-            if (res.status === 200) {
-                document.getElementById('loginSuccess').style.display = 'block';
-                setTimeout(() => closeLoginModal(), 1500);
-            } else {
-                document.getElementById('loginError').style.display = 'block';
-            }
-        } catch (err) {
-            console.error("Login error:", err);
-        }
+        fetch('https://api.silq.workers.dev/account', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user: username, pass: password })
+        })
+        .then(res => res.text())
+        .then(data => {
+            console.log('Login response:', data);
+            document.getElementById('loginSuccess').style.display = 'block';
+            setTimeout(() => {
+                closeLoginModal();
+            }, 1500);
+        })
+        .catch(err => {
+            console.error('Login error:', err);
+            document.getElementById('loginError').style.display = 'block';
+        });
     });
 
-    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('signupUsername').value;
         const password = document.getElementById('signupPassword').value;
@@ -944,40 +932,31 @@
 
         hideMessages();
 
-        if (password !== confirmPassword || password.length <= 6) {
+        if (password !== confirmPassword) {
             document.getElementById('signupError').style.display = 'block';
             return;
         }
 
-        const form = new FormData();
-        form.append('user', username);
-        form.append('pass', password);
-
-        try {
-            const res = await fetch(`${API_URL}/create`, {
-                method: 'POST',
-                body: form,
-                credentials: 'omit',
-                headers: {
-                    'Origin': 'https://silq.pages.dev'
-                }
-            });
-
-            const text = await res.text();
-            console.log("Signup response:", text);
-
-            if (res.status === 201) {
-                document.getElementById('signupSuccess').style.display = 'block';
-                setTimeout(() => {
-                    closeLoginModal();
-                    alert('Account created successfully! Welcome to SILQ!');
-                }, 1500);
-            } else {
-                document.getElementById('signupError').style.display = 'block';
-            }
-        } catch (err) {
-            console.error("Signup error:", err);
-        }
+        fetch('https://api.silq.workers.dev/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user: username, pass: password })
+        })
+        .then(res => res.text())
+        .then(data => {
+            console.log('Signup response:', data);
+            document.getElementById('signupSuccess').style.display = 'block';
+            setTimeout(() => {
+                closeLoginModal();
+                alert('Account created successfully! Welcome to SILQ!');
+            }, 1500);
+        })
+        .catch(err => {
+            console.error('Signup error:', err);
+            document.getElementById('signupError').style.display = 'block';
+        });
     });
 
     setFavicon();
