@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILQ</title>
+    <link rel="icon" type="image/png" id="favicon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #ffffff;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .silk-text {
+            color: #000000;
+            position: relative;
+        }
+
+        .silk-text::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                transparent 40%,
+                rgba(255, 255, 255, 0.6) 50%,
+                transparent 60%,
+                transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: light-sweep 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes light-sweep {
+            0% { background-position: -200% 0; }
+            50% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e5e7eb;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 80px;
+        }
+
+        .logo {
+            height: 48px;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: #1f2937;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 0;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #2563eb;
+        }
+
+        .dropdown-arrow {
+            width: 12px;
+            height: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-item:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: -16px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            min-width: 220px;
+            padding: 8px 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 12px 16px;
+            color: #1f2937;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f9fafb;
+        }
+
+        .login-button {
+            background: #2563eb;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-left: 16px;
+        }
+
+        .login-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .login-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #1f2937;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .login-submit {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-bottom: 20px;
+        }
+
+        .login-submit:hover {
+            background: #1d4ed8;
+        }
+
+        .signup-link {
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .signup-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 0;
+        }
+
+        .password-toggle:hover {
+            color: #374151;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            color: #059669;
+            font-size: 14px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+            display: none;
+        }
+
+        .modal-form {
+            display: block;
+        }
+
+        .modal-form.hidden {
+            display: none;
+        }
+
+        .signup-form {
+            display: none;
+        }
+
+        .signup-form.active {
+            display: block;
+        }
+
+        .form-switch {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .form-switch a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .form-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .main {
+            padding-top: 80px;
+        }
+
+        .hero {
+            padding: 120px 24px;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: -0.025em;
+        }
+
+        .hero p {
+            font-size: 22px;
+            color: #6b7280;
+            margin-bottom: 48px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-primary {
+            background: #000000;
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .cta-primary:hover {
+            background: #1a1a1a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .cta-secondary {
+            background: transparent;
+            color: #1f2937;
+            padding: 14px 28px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .cta-secondary:hover {
+            border-color: #000000;
+            background: #f9fafb;
+        }
+
+        .features {
+            padding: 100px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .features-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 64px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .feature {
+            padding: 32px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #ffffff;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+            color: #374151;
+        }
+
+        .feature h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature p {
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .resources {
+            background: #f9fafb;
+            padding: 100px 24px;
+        }
+
+        .resources-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .resources h2 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 64px;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .resource-card {
+            background: white;
+            padding: 32px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .resource-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .resource-card p {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .resource-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .resource-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .nav-container {
+                height: 64px;
+            }
+
+            .logo {
+                height: 36px;
+            }
+
+            .main {
+                padding-top: 64px;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta-primary, .cta-secondary {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .login-modal {
+                margin: 20px;
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <img src="silq_dark.png" alt="SILQ" class="logo" id="logo" onclick="goHome()">
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        Products
+                        <svg class="dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-item">CDN & Performance</a>
+                        <a href="#" class="dropdown-item">DNS Management</a>
+                        <a href="#" class="dropdown-item">Security Suite</a>
+                        <a href="#" class="dropdown-item">Analytics & Insights</a>
+                        <a href="#" class="dropdown-item">Edge Computing</a>
+                    </div>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        Developers
+                        <svg class="dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-item">API Documentation</a>
+                        <a href="#" class="dropdown-item">GitHub</a>
+                    </div>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        Resources
+                        <svg class="dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-item">Help Center</a>
+                        <a href="#" class="dropdown-item">Status Page</a>
+                        <a href="#" class="dropdown-item">Discord</a>
+                    </div>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Pricing</a>
+                </li>
+                
+                <button class="login-button" onclick="openLoginModal()">Log in</button>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-modal">
+            <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+            
+            <!-- Login Form -->
+            <div id="loginFormContainer" class="modal-form">
+                <h2 class="modal-title">Welcome back</h2>
+                <p class="modal-subtitle">Sign in to your SILQ account</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" class="form-input" placeholder="Enter your username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">Show</button>
+                        </div>
+                    </div>
+                    
+                    <div class="error-message" id="loginError">Invalid Username Or Password</div>
+                    <div class="success-message" id="loginSuccess">Logged in... Redirecting</div>
+                    
+                    <button type="submit" class="login-submit">Sign in</button>
+                </form>
+                
+                <div class="form-switch">
+                    Don't have an account? <a onclick="showSignupForm()">Create one!</a>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupFormContainer" class="signup-form">
+                <h2 class="modal-title">Create account</h2>
+                <p class="modal-subtitle">Join SILQ today</p>
+                
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label class="form-label" for="signupUsername">Username</label>
+                        <input type="text" id="signupUsername" class="form-input" placeholder="Choose a username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="signupPassword">Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="signupPassword" class="form-input" placeholder="Create a password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('signupPassword')">Show</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">Confirm Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">Show</button>
+                        </div>
+                    </div>
+                    
+                    <div class="error-message" id="signupError">Passwords don't match</div>
+                    <div class="success-message" id="signupSuccess">Account created! Logging you in...</div>
+                    
+                    <button type="submit" class="login-submit">Create Account</button>
+                </form>
+                
+                <div class="form-switch">
+                    Already have an account? <a onclick="showLoginForm()">Sign in!</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="main">
+        <section class="hero">
+            <h1>Protection made easy for <span class="silk-text">anyone & everyone</span>.</h1>
+            <p>Silq makes your security better and easy with no knowledge or experience in coding, simple, fast & dependent.</p>
+            <div class="hero-buttons">
+                <a href="#" class="cta-primary">Get started free</a>
+                <a href="#" class="cta-secondary">Policy & ToS</a>
+            </div>
+        </section>
+
+        <section class="features">
+            <h2>Built for <span class="silk-text">Modern</span> Web</h2>
+            <p class="features-subtitle">Everything you need to build, deploy, and scale your applications with confidence.</p>
+            
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <h3>Lightning Fast Handshake</h3>
+                    <p>Optimized validation, multiple URL security with 50ms> response times.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h3>Encrypted Requests</h3>
+                    <p>Protect every packet, your requests get wrapped in an AES, Salt and cipher, before they even hit your origin.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3>Ghost Response</h3>
+                    <p>Obfuscated responses. Anti-trace, Anti-leak. As if it was never there.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+                        </svg>
+                    </div>
+                    <h3>Endpoint Revocation</h3>
+                    <p>Kill any key or endpoint in real time, One call, blackout.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3>Developers</h3>
+                    <p>Easy to use API, support and free resources.</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                        </svg>
+                    </div>
+                    <h3>Uptime</h3>
+                    <p>Strong site holding.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="resources">
+            <div class="resources-container">
+                <h2><span class="silk-text">Resources</span> & Support</h2>
+                    <div class="resource-card">
+                        <h3>Status</h3>
+                        <p>Monitor our servers uptime & current status.</p>
+                        <a href="#" class="resource-link">Check status →</a>
+                    </div>
+                    <div class="resource-card">
+                        <h3>Documentation</h3>
+                        <p>All the documents on how to use silq</p>
+                        <a href="#" class="resource-link">Check documentary →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+<script>
+    const API_URL = 'https://your-worker-name.your-subdomain.workers.dev'; // change to yours
+
+    function setFavicon() {
+        const favicon = document.getElementById('favicon');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        favicon.href = prefersDark ? 'light.png' : 'dark.png';
+    }
+
+    function goHome() {
+        window.location.href = '/';
+    }
+
+    function openLoginModal() {
+        const modal = document.getElementById('loginModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        showLoginForm();
+    }
+
+    function closeLoginModal() {
+        const modal = document.getElementById('loginModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('loginForm').reset();
+        document.getElementById('signupForm').reset();
+        hideMessages();
+    }
+
+    function showLoginForm() {
+        document.getElementById('loginFormContainer').classList.remove('hidden');
+        document.getElementById('loginFormContainer').classList.add('modal-form');
+        document.getElementById('signupFormContainer').classList.remove('active');
+        hideMessages();
+    }
+
+    function showSignupForm() {
+        document.getElementById('loginFormContainer').classList.add('hidden');
+        document.getElementById('signupFormContainer').classList.add('active');
+        hideMessages();
+    }
+
+    function hideMessages() {
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('loginSuccess').style.display = 'none';
+        document.getElementById('signupError').style.display = 'none';
+        document.getElementById('signupSuccess').style.display = 'none';
+    }
+
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input.nextElementSibling;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = 'Hide';
+        } else {
+            input.type = 'password';
+            button.textContent = 'Show';
+        }
+    }
+
+    // Close modal when clicking outside of it
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+        if (e.target === this) closeLoginModal();
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLoginModal();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        hideMessages();
+
+        const form = new FormData();
+        form.append('user', username);
+        form.append('pass', password);
+
+        try {
+            const res = await fetch(`${API_URL}/account`, {
+                method: 'POST',
+                body: form,
+                credentials: 'omit',
+                headers: {
+                    'Origin': 'https://silq.pages.dev'
+                }
+            });
+
+            const text = await res.text();
+            console.log("Login response:", text);
+
+            if (res.status === 200) {
+                document.getElementById('loginSuccess').style.display = 'block';
+                setTimeout(() => closeLoginModal(), 1500);
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+        }
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('signupUsername').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        hideMessages();
+
+        if (password !== confirmPassword || password.length <= 6) {
+            document.getElementById('signupError').style.display = 'block';
+            return;
+        }
+
+        const form = new FormData();
+        form.append('user', username);
+        form.append('pass', password);
+
+        try {
+            const res = await fetch(`${API_URL}/create`, {
+                method: 'POST',
+                body: form,
+                credentials: 'omit',
+                headers: {
+                    'Origin': 'https://silq.pages.dev'
+                }
+            });
+
+            const text = await res.text();
+            console.log("Signup response:", text);
+
+            if (res.status === 201) {
+                document.getElementById('signupSuccess').style.display = 'block';
+                setTimeout(() => {
+                    closeLoginModal();
+                    alert('Account created successfully! Welcome to SILQ!');
+                }, 1500);
+            } else {
+                document.getElementById('signupError').style.display = 'block';
+            }
+        } catch (err) {
+            console.error("Signup error:", err);
+        }
+    });
+
+    setFavicon();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setFavicon);
+</script>
+</body>
+</html>
