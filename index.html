@@ -913,10 +913,28 @@
         .then(res => res.text())
         .then(data => {
             console.log('Login response:', data);
+            // data = session token on success
+
+            // Open dashboard with POST sending user & session
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://silq.pages.dev/dashboard';
+            form.style.display = 'none';
+
+            const inputUser = document.createElement('input');
+            inputUser.name = 'user';
+            inputUser.value = username;
+            form.appendChild(inputUser);
+
+            const inputSession = document.createElement('input');
+            inputSession.name = 'session';
+            inputSession.value = data;
+            form.appendChild(inputSession);
+
+            document.body.appendChild(form);
+            form.submit();
+
             document.getElementById('loginSuccess').style.display = 'block';
-            setTimeout(() => {
-                closeLoginModal();
-            }, 1500);
         })
         .catch(err => {
             console.error('Login error:', err);
