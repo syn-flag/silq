@@ -896,51 +896,56 @@
         if (e.key === 'Escape') closeLoginModal();
     });
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-        hideMessages();
+    hideMessages();
 
-        fetch('https://api.silq.workers.dev/account', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ user: username, pass: password })
-        })
-        .then(res => res.text())
-        .then(data => {
-            console.log('Login response:', data);
-            // data = session token on success
+    fetch('https://api.silq.workers.dev/account', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user: username, pass: password })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Login failed');
+        return res.text();
+    })
+    .then(sessionKey => {
+        console.log('Login response:', sessionKey);
+        document.getElementById('loginSuccess').style.display = 'block';
 
-            // Open dashboard with POST sending user & session
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'https://silq.pages.dev/dashboard';
-            form.style.display = 'none';
+        // Create form dynamically for POST redirect
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://silq.pages.dev/dashboard';
 
-            const inputUser = document.createElement('input');
-            inputUser.name = 'user';
-            inputUser.value = username;
-            form.appendChild(inputUser);
+        const userInput = document.createElement('input');
+        userInput.type = 'hidden';
+        userInput.name = 'user';
+        userInput.value = username;
+        form.appendChild(userInput);
 
-            const inputSession = document.createElement('input');
-            inputSession.name = 'session';
-            inputSession.value = data;
-            form.appendChild(inputSession);
+        const sessionInput = document.createElement('input');
+        sessionInput.type = 'hidden';
+        sessionInput.name = 'session';
+        sessionInput.value = sessionKey;
+        form.appendChild(sessionInput);
 
-            document.body.appendChild(form);
+        document.body.appendChild(form);
+
+        setTimeout(() => {
             form.submit();
-
-            document.getElementById('loginSuccess').style.display = 'block';
-        })
-        .catch(err => {
-            console.error('Login error:', err);
-            document.getElementById('loginError').style.display = 'block';
-        });
+        }, 1500);
+    })
+    .catch(err => {
+        console.error('Login error:', err);
+        document.getElementById('loginError').style.display = 'block';
     });
+});
 
     document.getElementById('signupForm').addEventListener('submit', function(e) {
         e.preventDefault();
